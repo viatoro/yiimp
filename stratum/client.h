@@ -105,10 +105,12 @@ public:
 inline void client_delete(YAAMP_OBJECT *object)
 {
 	YAAMP_CLIENT *client = (YAAMP_CLIENT *)object;
-	socket_close(client->sock);
-	client->sock = NULL;
+	if (object == NULL) return;
 
+	socket_close(client->sock);
 	delete client;
+
+	object = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////

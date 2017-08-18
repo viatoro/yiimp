@@ -6,9 +6,6 @@ require_once('serverconfig.php');
 require_once('yaamp/defaultconfig.php');
 require_once('yaamp/ui/app.php');
 
-if(isset($_SERVER['HTTP_X_FORWARDED_FOR']))
-	$_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
-
 //$_SERVER['PATH_INFO'] = $_SERVER['REQUEST_URI'];
 
 // blacklist some search bots which ignore robots.txt (most in fact)

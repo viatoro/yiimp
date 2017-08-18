@@ -128,6 +128,11 @@ void share_write(YAAMP_DB *db)
 		YAAMP_WORKER *worker = (YAAMP_WORKER *)li->data;
 		if(worker->deleted) continue;
 
+		if(!worker->workerid) {
+			object_delete(worker);
+			continue;
+		}
+
 		if(count) strcat(buffer, ",");
 		sprintf(buffer+strlen(buffer), "(%d, %d, %d, %d, %d, %d, %d, %f, %f, %d, '%s', %d)",
 			worker->userid, worker->workerid, worker->coinid, worker->remoteid, pid,

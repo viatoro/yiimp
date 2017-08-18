@@ -388,7 +388,7 @@ void *stratum_thread(void *p)
 			stratumlog("%s socket accept() error %d\n", g_stratum_algo, error);
 			failcount++;
 			usleep(50000);
-			if (error == 24 && failcount > 1024) {
+			if (error == 24 && failcount > 16) {
 				g_exiting = true;
 				stratumlogdate("%s too much socket failure, exiting...\n", g_stratum_algo);
 				exit(error);

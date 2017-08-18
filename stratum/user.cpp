@@ -168,7 +168,8 @@ void db_update_workers(YAAMP_DB *db)
 		{
 			clientlog(client, "speed %f", client->speed);
 			shutdown(client->sock->sock, SHUT_RDWR);
-
+			db_clear_worker(db, client);
+			object_delete(client);
 			continue;
 		}
 

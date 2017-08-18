@@ -31,6 +31,7 @@ require_once("livecoin.php");
 require_once("nova.php");
 require_once("coinexchange.php");
 require_once("coinsmarkets.php");
+require_once("cryptowatch.php");
 
 /* Format an exchange coin Url */
 function getMarketUrl($coin, $marketName)
@@ -55,6 +56,17 @@ function getMarketUrl($coin, $marketName)
 
 	$lowbase = strtolower($base);
 
+	if($market == 'cryptowatch') {
+		$exchange = 'poloniex'; // default for big altcoins
+		// and for most big btc fiat prices :
+		if(in_array($symbol, array('EUR','CAD','GBP')))
+			$exchange = 'kraken';
+		elseif(in_array($symbol, array('AUD','CNY','JPY')))
+			$exchange = 'quoine';
+		elseif(in_array($symbol, array('USD')))
+			$exchange = 'bitfinex';
+	}
+
 	if($market == 'alcurex')
 		$url = "https://alcurex.org/index.php/crypto/market?pair={$lowsymbol}_{$lowbase}";
 	else if($market == 'bittrex')
@@ -71,6 +83,8 @@ function getMarketUrl($coin, $marketName)
 		$url = " https://coinsmarkets.com/trade-{$base}-{$symbol}.htm";
 	else if($market == 'cryptopia')
 		$url = "https://www.cryptopia.co.nz/Exchange?market={$symbol}_{$base}";
+	else if($market == 'cryptowatch')
+		$url = "https://cryptowat.ch/{$exchange}/{$lowbase}{$lowsymbol}";
 	else if($market == 'c-cex')
 		$url = "https://c-cex.com/?p={$lowsymbol}-{$lowbase}";
 	else if($market == 'empoex')

@@ -56,22 +56,30 @@ foreach($versions as $item)
 	$count = $item['c'];
 	$extranonce = $item['s'];
 
-	$hashrate = dboscalar("select sum(difficulty) * $target / $interval / 1000 from shares where valid and time>$delay and
-		workerid IN (select id from workers where algo=:algo and version=:version)", array(':algo'=>$algo, ':version'=>$version));
+	$hashrate = controller()->memcache->get_database_scalar("miners-valid-$algo-v$version",
+		"SELECT sum(difficulty) * $target / $interval / 1000 FROM shares WHERE valid AND time>$delay
+		 AND workerid IN (SELECT id FROM workers WHERE algo=:algo and version=:version)",
+		 array(':algo'=>$algo, ':version'=>$version)
+	);
 
 	if (!$hashrate && !$this->admin) continue;
 
-	$invalid = dboscalar("select sum(difficulty) * $target / $interval / 1000 from shares where not valid and time>$delay and
-		workerid IN (select id from workers where algo=:algo and version=:version)", array(':algo'=>$algo, ':version'=>$version));
+	$invalid = controller()->memcache->get_database_scalar("miners-invalid-$algo-v$version",
+		"SELECT SUM(difficulty) * $target / $interval / 1000 FROM shares WHERE not valid AND time>$delay
+		 AND workerid IN (SELECT id FROM workers WHERE algo=:algo AND version=:version)",
+		 array(':algo'=>$algo, ':version'=>$version)
+	);
 
 	$title = '';
 	foreach($error_tab as $i=>$s)
 	{
-		$invalid2 = dboscalar("select sum(difficulty) * $target / $interval / 1000 from shares where error=$i and time>$delay and
-			workerid in (select id from workers where algo=:algo and version=:version)", array(':algo'=>$algo, ':version'=>$version));
+		$invalid2 = controller()->memcache->get_database_scalar("miners-invalid-$algo-v$version-err$i",
+			"SELECT sum(difficulty) * $target / $interval / 1000 from shares WHERE error=$i AND time>$delay
+			AND workerid in (SELECT id FROM workers WHERE algo=:algo AND version=:version)",
+			array(':algo'=>$algo, ':version'=>$version)
+		);
 
-		if($invalid2)
-		{
+		if($invalid2) {
 			$bad2 = round($invalid2*100/($hashrate+$invalid2), 2).'%';
 			$title .= "$bad2 - $s\n";
 		}
@@ -105,12 +113,13 @@ echo "</tbody>";
 $title = '';
 foreach($error_tab as $i=>$s)
 {
-	$invalid2 = dboscalar("select sum(difficulty) * $target / $interval / 1000 from shares where error=$i and time>$delay and
-		workerid in (select id from workers where algo=:algo)", array(':algo'=>$algo));
+	$invalid2 = controller()->memcache->get_database_scalar("miners-invalid-$algo-err$i",
+		"SELECT SUM(difficulty) * $target / $interval / 1000 FROM shares WHERE time>$delay AND algo=:algo AND error=$i ".
+		"AND workerid IN (SELECT id FROM workers WHERE algo=:algo)", array(':algo'=>$algo)
+	);
 
-	if($invalid2)
-	{
-		$bad2 = round($invalid2*100/($total_hashrate+$invalid2), 2).'%';
+	if($invalid2) {
+		$bad2 = round($invalid2*100/($total_hashrate+$invalid2), 2);
 		$title .= "$bad2 - $s\n";
 	}
 }

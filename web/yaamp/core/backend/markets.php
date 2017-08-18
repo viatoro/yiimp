@@ -556,8 +556,14 @@ function updatePoloniexMarkets()
 		$market->save();
 
 		if(empty($market->deposit_address) && $coin->installed && !empty(EXCH_POLONIEX_KEY)) {
-			if ($coin->symbol != 'EXE')
+			$last_checked = cache()->get($exchange.'-deposit_address-check');
+			if (time() - $last_checked < 3600) {
+				// if still empty after get_deposit_addresses(), generate one
 				$poloniex->generate_address($coin->symbol);
+				sleep(1);
+			}
+			// empty address found, so force get_deposit_addresses check
+			cache()->set($exchange.'-deposit_address-check', 0, 10);
 		}
 
 //		debuglog("$exchange: update $coin->symbol: $market->price $market->price2");
@@ -896,6 +902,7 @@ function updateHitBTCMarkets()
 				$market->price = AverageIncrement($market->price, (double)$ticker['bid']);
 				$market->price2 = AverageIncrement($market->price2, $price2);
 				$market->pricetime = time(); // $ticker->timestamp
+				$market->priority = -1;
 				$market->save();
 
 				if (empty($coin->price2) && strpos($pair,'BTC') !== false) {
